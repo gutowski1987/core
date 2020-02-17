@@ -1,0 +1,24 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "bc0f0003-0d70-4ed9-bed2-d194823b66ab",
+  "alias": "CoreGraphWebPart",
+  "componentType": "WebPart",
+
+  "version": "*",
+  "manifestVersion": 2,
+
+
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "TeamsTab"],
+
+  "preconfiguredEntries": [{
+    "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+    "group": { "default": "Other" },
+    "title": { "default": "coreGraph" },
+    "description": { "default": "coreGraph description" },
+    "officeFabricIconFontName": "Page",
+    "properties": {
+      "description": "coreGraph"
+    }
+  }]
+}
