@@ -1,37 +1,46 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
-import { Version } from '@microsoft/sp-core-library';
+import { Version, Environment, EnvironmentType } from '@microsoft/sp-core-library';
 import {
+  BaseClientSideWebPart,
   IPropertyPaneConfiguration,
-  PropertyPaneTextField
-} from '@microsoft/sp-property-pane';
-import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
+  PropertyPaneToggle
+} from '@microsoft/sp-webpart-base';
 
 import * as strings from 'CoreGraphWebPartStrings';
-import CoreGraph from './components/CoreGraph';
-import { ICoreGraphProps } from './components/ICoreGraphProps';
+import { CoreGraph, ICoreGraphProps } from './components';
+import { MSGraphClient } from '@microsoft/sp-http';
+import { TeamsService, ITeamsService } from '../../shared/services';
 
 export interface ICoreGraphWebPartProps {
-  description: string;
+  openInClientApp: boolean;
 }
 
-export default class CoreGraphWebPart extends BaseClientSideWebPart <ICoreGraphWebPartProps> {
-  public render(): void {
+export default class CoreGraphWebPart extends BaseClientSideWebPart<ICoreGraphWebPartProps> {
+
+  private _graphClient: MSGraphClient;
+  private _teamsService: ITeamsService;
+
+  public async onInit(): Promise<void> {
+
+    if (DEBUG && Environment.type === EnvironmentType.Local) {
+      console.log("Mock data service not implemented yet");
+    } else {
+
+      this._graphClient = await this.context.msGraphClientFactory.getClient();
+      this._teamsService = new TeamsService(this._graphClient);
+    }
+
+    return super.onInit();
+  }
+
+  public async render(): Promise<void> {
     const element: React.ReactElement<ICoreGraphProps> = React.createElement(
       CoreGraph,
-      this.context.sdks.microsoftTeams ? 
-        {
-          title: "Welcome to Teams!",
-          subTitle: "Building custom enterprise tabs for your business.",
-          siteTabTitle: "We are in the context of following Team: TEAMS",
-          description: this.properties.description
-        } :
-        {
-          title: "Welcome to SharePoint!",
-          subTitle: "Building custom enterprise NOTtabs :) for your business.",
-          siteTabTitle: "We are in the context of following Team: SharePoint",
-          description: this.properties.description
-        }
+      {
+        teamsService: this._teamsService,
+        openInClientApp: this.properties.openInClientApp
+      }
     );
 
     ReactDom.render(element, this.domElement);
@@ -56,8 +65,8 @@ export default class CoreGraphWebPart extends BaseClientSideWebPart <ICoreGraphW
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
+                PropertyPaneToggle('openInClientApp', {
+                  label: strings.OpenInClientAppFieldLabel,
                 })
               ]
             }

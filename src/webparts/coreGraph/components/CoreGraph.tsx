@@ -1,26 +1,102 @@
 import * as React from 'react';
+import { FocusZone } from 'office-ui-fabric-react/lib/FocusZone';
+import { List } from 'office-ui-fabric-react/lib/List';
 import styles from './CoreGraph.module.scss';
-import { ICoreGraphProps } from './ICoreGraphProps';
+import { ICoreGraphProps, ICoreGraphState } from '.';
 import { escape } from '@microsoft/sp-lodash-subset';
+import { ITeam, IChannel } from '../../../shared/interfaces';
 
-export default class CoreGraph extends React.Component<ICoreGraphProps, {}> {
+export class CoreGraph extends React.Component<ICoreGraphProps, ICoreGraphState> {
+
+  private _CoreGraph: ITeam[] = [];
+
+  constructor(props: ICoreGraphProps) {
+    super(props);
+
+    this.state = {
+      items: []
+    };
+  }
+
+  public async componentDidMount() {
+    await this._load();
+  }
+
+  public async componentDidUpdate(prevProps: ICoreGraphProps) {
+    if (this.props.openInClientApp !== prevProps.openInClientApp) {
+      await this._load();
+    }
+  }
+
+  private _load = async (): Promise<void> => {
+
+    // get teams
+    this._CoreGraph = await this._getTeams();
+
+
+    this.setState({
+      items: this._CoreGraph,
+    });
+  }
+
   public render(): React.ReactElement<ICoreGraphProps> {
     return (
-      <div className={ styles.coreGraph }>
-        <div className={ styles.container }>
-          <div className={ styles.row }>
-            <div className={ styles.column }>
-              <span className={ styles.title }>{this.props.title}</span>
-              <p className={ styles.subTitle }>{this.props.subTitle}</p>
-              <p className={ styles.description }>{this.props.siteTabTitle}</p>
-              <p className={ styles.description }>Description property value - {escape(this.props.description)}</p>
-              <a href="https://aka.ms/spfx" className={ styles.button }>
-                <span className={ styles.label }>Learn more</span>
-              </a>
-            </div>
-          </div>
-        </div>
+      <FocusZone id="testId">
+        <List
+          className={styles.coreGraph}
+          items={this._CoreGraph}
+          renderedWindowsAhead={4}
+          onRenderCell={this._onRenderCell}
+        />
+      </FocusZone>
+    );
+  }
+
+  private _onRenderCell = (team: ITeam, index: number | undefined): JSX.Element => {
+
+    return (
+      <div>
+        <a href="#" title='Click to open channel' onClick={this._openChannel.bind(this, team.id)}>
+          <span>{team.displayName}</span>
+        </a>
       </div>
     );
+  }
+
+  private _openChannel = async (teamId: string): Promise<void> => {
+    let link = '#';
+
+    const teamChannels: IChannel[] = await this._getTeamChannels(teamId);
+    const channel = teamChannels[0];
+
+    if (this.props.openInClientApp) {
+      link = channel.webUrl;
+    } else {
+      link = `https://teams.microsoft.com/_#/conversations/${channel.displayName}?threadId=${channel.id}&ctx=channel`;
+    }
+
+    window.open(link, '_blank');
+  }
+
+  private _getTeams = async (): Promise<ITeam[]> => {
+    let coreGraph: ITeam[] = [];
+    try {
+      coreGraph = await this.props.teamsService.GetTeams();
+      console.log(coreGraph);
+    } catch (error) {
+      console.log('Error getting teams', error);
+    }
+    return coreGraph;
+  }
+
+  private _getTeamChannels = async (teamId): Promise<IChannel[]> => {
+    let channels: IChannel[] = [];
+    try {
+      channels = await this.props.teamsService.GetTeamChannels(teamId);
+      console.log(channels);
+    } catch (error) {
+      console.log('Error getting channels for team ' + teamId, error);
+    }
+    return channels;
   }
 }

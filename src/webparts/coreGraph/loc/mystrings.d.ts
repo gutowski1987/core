@@ -1,7 +1,7 @@
 declare interface ICoreGraphWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;
-  DescriptionFieldLabel: string;
+  OpenInClientAppFieldLabel: string;
 }
 
 declare module 'CoreGraphWebPartStrings' {

@@ -1,6 +1,6 @@
+import { ITeamsService } from "../../../shared/services";
+
 export interface ICoreGraphProps {
-  title: string;
-  subTitle: string;
-  siteTabTitle: string;
-  description: string;
+  teamsService: ITeamsService;
+  openInClientApp: boolean;
 }

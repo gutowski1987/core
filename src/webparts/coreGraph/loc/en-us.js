@@ -2,6 +2,6 @@ define([], function() {
   return {
     "PropertyPaneDescription": "Description",
     "BasicGroupName": "Group Name",
-    "DescriptionFieldLabel": "Description Field"
+    "OpenInClientAppFieldLabel": "Open link in client app (open in browser by disabled)"
   }
 });
